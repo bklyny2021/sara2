@@ -1,0 +1,31 @@
+# Autonomous Agent - Allowed Paths Configuration
+# Only these paths can be modified by the autonomous agent
+# Security: All other paths are blocked
+
+# Core agent directories (safe for agent to modify)
+agent/
+agent/skills/
+agent/memory/
+agent/utils/
+
+# Documentation and tools (safe content creation)
+docs/
+tools/
+scripts/
+
+# Configuration (limited access)
+config/
+agent/config/
+
+# Temporary working directories
+tmp/
+temp/
+workspace/
+
+# SECURITY NOTES:
+# - NO system directories (/etc, /usr, etc.)
+# - NO user home directories (~, /home)
+# - NO critical system files
+# - NO executable system binaries
+# - NO network configuration files
+# - NO credential files or secrets

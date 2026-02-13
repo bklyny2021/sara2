@@ -1,0 +1,61 @@
+name: Run Agent Job
+
+on:
+  repository_dispatch:
+    types: [job_created]
+
+jobs:
+  run-agent:
+    runs-on: ubuntu-latest
+    
+    container:
+      image: ghcr.io/${{ github.repository }}/agent:latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.event.client_payload.branch }}
+      
+      - name: Setup environment
+        env:
+          OLLAMA_API_KEY: ${{ secrets.OLLAMA_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OLLAMA_URL: ${{ secrets.OLLAMA_URL }}
+          OLLAMA_MODEL: ${{ secrets.OLLAMA_MODEL }}
+        run: |
+          echo "Setting up autonomous agent environment..."
+          echo "Job ID: ${{ github.event.client_payload.job_id }}"
+          echo "Task: ${{ github.event.client_payload.task }}"
+      
+      - name: Execute Autonomous Agent
+        env:
+          JOB_ID: ${{ github.event.client_payload.job_id }}
+          TASK: ${{ github.event.client_payload.task }}
+          USER_ID: ${{ github.event.client_payload.user_id }}
+          TIMESTAMP: ${{ github.event.client_payload.timestamp }}
+        run: |
+          python agent/ollama_agent.py
+      
+      - name: Create Pull Request
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JOB_ID: ${{ github.event.client_payload.job_id }}
+        run: |
+          if [ -f "changes.json" ]; then
+            python agent/utils/create_pr.py
+          else
+            echo "No changes to commit"
+          fi
+      
+      - name: Notify Completion
+        if: always()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          JOB_ID: ${{ github.event.client_payload.job_id }}
+          USER_ID: ${{ github.event.client_payload.user_id }}
+        run: |
+          python agent/utils/notify.py

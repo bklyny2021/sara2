@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌟 Sara Offline - Your AI Partner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: rgba(74, 85, 104, 0.5);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(74, 85, 104, 0.8);
+            padding: 1rem 2rem;
+            color: #e2e8f0;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .header .status {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-top: 0.25rem;
+        }
+
+        .main-container {
+            flex: 1;
+            display: flex;
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 2rem;
+            gap: 2rem;
+        }
+
+        .chat-container {
+            flex: 1;
+            background: rgba(45, 55, 72, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 2px solid rgba(74, 85, 104, 0.8);
+            display: flex;
+            flex-direction: column;
+            max-height: 80vh;
+        }
+
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .message {
+            display: flex;
+            gap: 0.75rem;
+            max-width: 75%;
+            animation: fadeIn 0.3s ease-in-out;
+            margin-bottom: 1.5rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            margin-left: auto;
+            flex-direction: row-reverse;
+        }
+
+        .message.sara {
+            margin-right: auto;
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 600;
+            flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .avatar.user {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            color: #ffffff;
+            border: 2px solid rgba(66, 153, 225, 0.3);
+        }
+
+        .avatar.sara {
+            background: linear-gradient(135deg, #667eea, #5a67d8);
+            color: #ffffff;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+        }
+
+        .message-content {
+            background: rgba(74, 85, 104, 0.4);
+            backdrop-filter: blur(8px);
+            border-radius: 18px 18px 18px 4px;
+            padding: 1rem 1.2rem;
+            color: #e2e8f0;
+            line-height: 1.5;
+            word-wrap: break-word;
+            border: 1px solid rgba(74, 85, 104, 0.6);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            font-size: 0.95rem;
+        }
+
+        .message.user .message-content {
+            background: rgba(66, 153, 225, 0.25);
+            border: 1px solid rgba(66, 153, 225, 0.4);
+            border-radius: 18px 18px 4px 18px;
+        }
+
+        /* TERMINAL STYLING FOR CODE */
+        .terminal-code {
+            background: #1a1a1a !important;
+            border: 2px solid #333 !important;
+            border-radius: 8px !important;
+            padding: 1rem !important;
+            margin: 0.75rem 0 !important;
+            font-family: 'Fira Code', 'Monaco', 'Consolas', monospace !important;
+            font-size: 0.9rem !important;
+            color: #00ff00 !important;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8) !important;
+            position: relative !important;
+            overflow-x: auto !important;
+        }
+
+        .terminal-code::before {
+            content: "TERMINAL" !important;
+            position: absolute !important;
+            top: 4px !important;
+            right: 8px !important;
+            font-size: 0.7rem !important;
+            color: #666 !important;
+            font-weight: bold !important;
+            text-transform: uppercase !important;
+        }
+
+        .terminal-code pre {
+            margin: 0 !important;
+            background: transparent !important;
+        }
+
+        .timestamp {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            margin-top: 0.5rem;
+            color: #a0aec0;
+            font-weight: 500;
+        }
+
+        .input-container {
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 1rem 1.5rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .message-input {
+            flex: 1;
+            background: rgba(74, 85, 104, 0.3);
+            border: 2px solid rgba(74, 85, 104, 0.6);
+            border-radius: 25px;
+            padding: 0.75rem 1rem;
+            color: #e2e8f0;
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .message-input::placeholder {
+            color: rgba(160, 174, 192, 0.8);
+        }
+
+        .message-input:focus {
+            background: rgba(74, 85, 104, 0.4);
+            border-color: #4299e1;
+        }
+
+        .send-button {
+            background: rgba(102, 126, 234, 0.6);
+            border: 2px solid rgba(102, 126, 234, 0.8);
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #e2e8f0;
+            font-size: 1.2rem;
+        }
+
+        .send-button:hover {
+            background: rgba(102, 126, 234, 0.8);
+            transform: scale(1.05);
+        }
+
+        .send-button.sending {
+            animation: rotate 1s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* TAB SYSTEM */
+        .sidebar {
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .tabs-container {
+            background: rgba(45, 55, 72, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 2px solid rgba(74, 85, 104, 0.8);
+            overflow: hidden;
+        }
+
+        .tab-buttons {
+            display: flex;
+            border-bottom: 1px solid rgba(74, 85, 104, 0.8);
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 0.75rem;
+            background: rgba(74, 85, 104, 0.3);
+            border: none;
+            color: #e2e8f0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .tab-button.active {
+            background: rgba(102, 126, 234, 0.4);
+            color: #ffffff;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .tab-button:hover {
+            background: rgba(102, 126, 234, 0.3);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 1.25rem;
+            color: #e2e8f0;
+            font-size: 0.85rem;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .status-card, .memory-card, .capabilities-card {
+            background: rgba(45, 55, 72, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 2px solid rgba(74, 85, 104, 0.8);
+            padding: 1.25rem;
+            color: #e2e8f0;
+        }
+
+        .card-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            opacity: 0.9;
+        }
+
+        .status-item, .capability-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            color: rgba(160, 174, 192, 0.8);
+            font-size: 0.85rem;
+            padding: 0.5rem 1.5rem;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: #8b9dc3;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
+        }
+
+        /* THOUGHTS STYLING */
+        .thought-item {
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid rgba(102, 126, 234, 0.4);
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.8rem;
+            font-style: italic;
+            color: #e2e8f0;
+        }
+
+        .thought-time {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-bottom: 0.25rem;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+                padding: 1rem;
+            }
+            
+            .sidebar {
+                width: 100%;
+                flex-direction: row;
+                overflow-x: auto;
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>🌟 Sara Offline</h1>
+        <div class="status" id="statusText">🤖 Connecting...</div>
+    </header>
+
+    <div class="main-container">
+        <div class="chat-container">
+            <div class="messages-container" id="messagesContainer">
+                <!-- Messages will appear here -->
+            </div>
+            
+            <div class="typing-indicator" id="typingIndicator">
+                <div class="typing-dots">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+                <span>Sara is thinking...</span>
+            </div>
+
+            <div class="input-container">
+                <input type="text" class="message-input" id="messageInput" 
+                       placeholder="Ask Sara anything..." />
+                <button class="send-button" id="sendButton">➤</button>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <!-- TABS for Thoughts/Other info -->
+            <div class="tabs-container">
+                <div class="tab-buttons">
+                    <button class="tab-button active" data-tab="status">📊 Status</button>
+                    <button class="tab-button" data-tab="thoughts">🧠 Thoughts</button>
+                    <button class="tab-button" data-tab="memory">💾 Memory</button>
+                </div>
+                
+                <!-- Status Tab -->
+                <div class="tab-content active" id="status-tab">
+                    <div id="systemStatus">Loading...</div>
+                </div>
+                
+                <!-- Thoughts Tab -->
+                <div class="tab-content" id="thoughts-tab">
+                    <div id="thoughtsContainer">
+                        <div class="thought-item">
+                            <div class="thought-time">📅 System Thoughts</div>
+                            💭 Initializing Sara's learning system...
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Memory Tab -->
+                <div class="tab-content" id="memory-tab">
+                    <div id="memoryContent">Loading...</div>
+                </div>
+            </div>
+
+            <div class="capabilities-card">
+                <div class="card-title">🎯 Capabilities</div>
+                <div id="capabilitiesStatus">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class SaraChat {
+            constructor() {
+                this.messagesContainer = document.getElementById('messagesContainer');
+                this.messageInput = document.getElementById('messageInput');
+                this.sendButton = document.getElementById('sendButton');
+                this.typingIndicator = document.getElementById('typingIndicator');
+                this.thoughtsContainer = document.getElementById('thoughtsContainer');
+                
+                this.initEventListeners();
+                this.updateStatus();
+                this.addWelcomeMessage();
+                this.initTabs();
+            }
+
+            initEventListeners() {
+                this.sendButton.addEventListener('click', () => this.sendMessage());
+                this.messageInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.sendMessage();
+                });
+
+                // Tab switching
+                document.querySelectorAll('.tab-button').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const tabName = e.target.dataset.tab;
+                        this.switchTab(tabName);
+                    });
+                });
+            }
+
+            switchTab(tabName) {
+                // Hide all tabs
+                document.querySelectorAll('.tab-content').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                document.querySelectorAll('.tab-button').forEach(button => {
+                    button.classList.remove('active');
+                });
+
+                // Show selected tab
+                document.getElementById(`${tabName}-tab`).classList.add('active');
+                document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            }
+
+            async sendMessage() {
+                const message = this.messageInput.value.trim();
+                if (!message) return;
+
+                // Add user message with immediate update
+                this.addMessage('user', message);
+                this.messageInput.value = '';
+
+                // Add thought about this request
+                this.addThought(`Processing request: "${message.substring(0, 50)}${message.length > 50 ? '...' : ''}"`);
+
+                // Show typing indicator
+                this.showTypingIndicator();
+
+                try {
+                    const response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message })
+                    });
+
+                    const data = await response.json();
+                    this.hideTypingIndicator();
+                    
+                    // Process response for code blocks
+                    const processedContent = this.processCodeBlocks(data.response);
+                    this.addMessage('sara', processedContent, data.timestamp);
+                    
+                    // Add thought about what Sara learned
+                    this.addThought(`Completed response about: "${message.substring(0, 30)}${message.length > 30 ? '...' : ''}" - Used shell commands and interpretation`);
+                    
+                    this.updateStatus();
+                } catch (error) {
+                    this.hideTypingIndicator();
+                    this.addMessage('sara', 'Sorry, I had trouble processing that. Could you try again?');
+                    this.addThought('❌ Error occurred during message processing');
+                }
+            }
+
+            addThought(thoughtText) {
+                const thoughtDiv = document.createElement('div');
+                thoughtDiv.className = 'thought-item';
+                
+                const timeDiv = document.createElement('div');
+                timeDiv.className = 'thought-time';
+                timeDiv.textContent = new Date().toLocaleTimeString();
+                
+                const thoughtContent = document.createTextNode(thoughtText);
+                
+                thoughtDiv.appendChild(timeDiv);
+                thoughtDiv.appendChild(thoughtContent);
+                
+                // Add to thoughts container (limit to 10 thoughts)
+                this.thoughtsContainer.insertBefore(thoughtDiv, this.thoughtsContainer.firstChild);
+                
+                // Clean up old thoughts
+                while (this.thoughtsContainer.children.length > 10) {
+                    this.thoughtsContainer.removeChild(this.thoughtsContainer.lastChild);
+                }
+            }
+
+            processCodeBlocks(content) {
+                // Enhanced code block processor with terminal styling
+                let processed = content;
+
+                // Multi-line code blocks (terminal style)
+                processed = processed.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+                    return `<div class="terminal-code"><pre>${code.trim()}</pre></div>`;
+                });
+
+                // Inline code
+                processed = processed.replace(/`([^`]+)`/g, '<code style="background: rgba(102, 126, 234, 0.3); color: #a0aec0; padding: 2px 6px; border-radius: 4px; font-family: monospace;">$1</code>');
+
+                return processed;
+            }
+
+            addMessage(type, content, timestamp = Date.now()) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${type}`;
+                
+                const avatar = document.createElement('div');
+                avatar.className = `avatar ${type}`;
+                avatar.textContent = type === 'user' ? 'B' : 'S';
+                
+                const messageContent = document.createElement('div');
+                messageContent.className = 'message-content';
+                messageContent.innerHTML = content; // Use innerHTML for processed content
+                
+                const timeDiv = document.createElement('div');
+                timeDiv.className = 'timestamp';
+                timeDiv.textContent = new Date(timestamp).toLocaleTimeString();
+                messageContent.appendChild(timeDiv);
+                
+                if (type === 'user') {
+                    // User: content first, then avatar on right
+                    messageDiv.appendChild(messageContent);
+                    messageDiv.appendChild(avatar);
+                } else {
+                    // Sara: avatar first, then content on right
+                    messageDiv.appendChild(avatar);
+                    messageDiv.appendChild(messageContent);
+                }
+                
+                this.messagesContainer.appendChild(messageDiv);
+                this.scrollToBottom();
+            }
+
+            showTypingIndicator() {
+                this.typingIndicator.style.display = 'flex';
+                this.sendButton.classList.add('sending');
+                this.scrollToBottom();
+            }
+
+            hideTypingIndicator() {
+                this.typingIndicator.style.display = 'none';
+                this.sendButton.classList.remove('sending');
+            }
+
+            scrollToBottom() {
+                this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+            }
+
+            async updateStatus() {
+                try {
+                    const [status, memory, capabilities] = await Promise.all([
+                        fetch('/api/status'),
+                        fetch('/api/memory'),
+                        fetch('/api/tasks')
+                    ]);
+
+                    const statusData = await status.json();
+                    const memoryData = await memory.json();
+                    const capabilitiesData = await capabilities.json();
+
+                    // Update system status
+                    document.getElementById('systemStatus').innerHTML = `
+                        <div class="status-item">${statusData.model}</div>
+                        <div class="status-item">${statusData.privacy}</div>
+                        <div class="status-item">💬 ${memoryData.total_conversations} conversations</div>
+                    `;
+
+                    // Update memory status (in memory tab)
+                    document.getElementById('memoryContent').innerHTML = `
+                        <div class="status-item">💬 ${memoryData.total_conversations} conversations</div>
+                        <div class="status-item">📋 ${memoryData.active_tasks} tasks</div>
+                        <div class="status-item">${memoryData.storage}</div>
+                    `;
+
+                    // Update capabilities
+                    document.getElementById('capabilitiesStatus').innerHTML = statusData.capabilities.map(cap => 
+                        `<div class="capability-item">✨ ${cap}</div>`
+                    ).join('');
+
+                    // Update header status
+                    document.getElementById('statusText').textContent = statusData.model;
+
+                } catch (error) {
+                    console.error('Status update failed:', error);
+                }
+            }
+
+            initTabs() {
+                // Tab system initialized in initEventListeners
+            }
+
+            addWelcomeMessage() {
+                setTimeout(() => {
+                    this.addMessage('sara', "Hello Boo! It's great to connect with you again. I'm here and ready to help with anything you need! I've been enhanced with better code display, thought tracking, and learning capabilities. What would you like to work on today? 💚");
+                    this.addThought('💡 Sara initialized and ready for interaction with enhanced learning system');
+                }, 500);
+            }
+        }
+
+        // Initialize the chat
+        document.addEventListener('DOMContentLoaded', () => {
+            new SaraChat();
+        });
+    </script>
+</body>
+</html>

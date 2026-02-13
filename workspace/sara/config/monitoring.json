@@ -1,0 +1,9 @@
+{
+  "command_center_url": "http://localhost:8080",
+  "agent_monitoring_port": 8081,
+  "log_level": "INFO",
+  "backup_interval": 3600,
+  "health_check_interval": 60,
+  "max_concurrent_agents": 5,
+  "sara_monitoring_access": true
+}

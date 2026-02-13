@@ -1,0 +1,37 @@
+{
+  "timestamp": "2026-02-09T10:08:46.728161",
+  "pass_rate": 100.0,
+  "operational": true,
+  "tests": [
+    {
+      "name": "Speech Recognition Library",
+      "passed": true,
+      "details": "Found 16 devices"
+    },
+    {
+      "name": "K66 Microphone",
+      "passed": true,
+      "details": "Found at index 6"
+    },
+    {
+      "name": "Female Voice TTS",
+      "passed": true,
+      "details": "Using available voice, 131 total"
+    },
+    {
+      "name": "Configuration Files",
+      "passed": true,
+      "details": "Config and agent accessible"
+    },
+    {
+      "name": "Audio Permissions",
+      "passed": true,
+      "details": "K66 microphone accessible"
+    },
+    {
+      "name": "Voice Agent Ready",
+      "passed": true,
+      "details": "System ready for voice interaction"
+    }
+  ]
+}

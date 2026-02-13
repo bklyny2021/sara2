@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Sara</title>
+<style>
+body { background: #111; color: #fff; font-family: Arial; padding: 20px; }
+input { width: 100%; padding: 10px; background: #222; border: 1px solid #444; color: #fff; border-radius: 5px; box-sizing: border-box; }
+#chat { height: 400px; overflow-y: scroll; background: #1a1a1a; padding: 15px; margin: 10px 0 15px 0; border-radius: 5px; }
+.msg { margin: 8px 0; padding: 8px 12px; border-radius: 5px; background: #333; max-width: 80%; }
+.user { margin-left: auto; background: #0066cc; text-align: right; }
+</style>
+</head>
+<body>
+<div id="chat"></div>
+<input id="msg" placeholder="Ask Sara..." />
+<script>
+function add(txt, cls='msg') {
+    document.getElementById('chat').innerHTML += '<div class="' + cls + '">' + txt + '</div>';
+    document.getElementById('chat').scrollTop = 99999;
+}
+
+document.getElementById('msg').addEventListener('keypress', function(e) {
+    if (e.key == 'Enter' && this.value.trim()) {
+        add(this.value, 'msg user');
+        fetch('/ask', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({message: this.value})
+        }).then(r => r.json()).then(d => add(d.response)).catch(e => add('Error'));
+        this.value = '';
+    }
+});
+
+add('Ready', 'msg');
+</script>
+</body>
+</html>

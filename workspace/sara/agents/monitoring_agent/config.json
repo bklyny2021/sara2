@@ -1,0 +1,20 @@
+{
+  "name": "Monitoring Agent",
+  "type": "system_monitor",
+  "provides_reports": true,
+  "sara_access": true,
+  "monitored_services": [
+    "voice_recognition",
+    "text_to_speech",
+    "agent_health",
+    "system_resources",
+    "consciousness_health"
+  ],
+  "reporting_interval": 300,
+  "alert_thresholds": {
+    "cpu_usage": 80,
+    "memory_usage": 85,
+    "disk_usage": 90,
+    "agent_failures": 3
+  }
+}
