@@ -7,6 +7,7 @@ Connect to simple_memory brain and run real Sara agent
 import subprocess
 import json
 import time
+import urllib.request
 from datetime import datetime
 from flask import Flask, render_template_string, request, jsonify
 
@@ -33,15 +34,22 @@ class SaraWebInterface:
             pass
     
     def ask_sara(self, question):
-        """Ask Sara model a question"""
+        """Ask Sara model a question via API"""
         try:
-            cmd = [
-                'ollama', 'run', 'sara-boo1-fixed:latest', question
-            ]
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-            return result.stdout.strip() if result.returncode == 0 else "I had trouble processing that."
-        except:
-            return "I'm having difficulty responding right now."
+            import urllib.request
+            import urllib.error
+            data = json.dumps({"model": "sara-v2:latest", "prompt": question, "stream": False}).encode('utf-8')
+            req = urllib.request.Request(
+                'http://127.0.0.1:11434/api/generate',
+                data=data,
+                headers={'Content-Type': 'application/json'},
+                method='POST'
+            )
+            with urllib.request.urlopen(req, timeout=30) as response:
+                result = json.loads(response.read().decode('utf-8'))
+                return result.get('response', 'No response from model')
+        except Exception as e:
+            return f"Error: {str(e)}"
     
     def add_conversation(self, user_input, sara_response, session="web_chat"):
         """Add conversation to memory"""
