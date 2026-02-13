@@ -1,6 +1,0 @@
-2026-02-09 10:06:00,983 - INFO - 🎤 Initializing Voice-Ready Sara...
-2026-02-09 10:06:00,983 - INFO - ✅ Configuration loaded
-2026-02-09 10:06:00,983 - ERROR - Main error: cannot access local variable 'SPEECH_AVAILABLE' where it is not associated with a value
-2026-02-09 10:08:50,503 - INFO - 🎤 Initializing Voice-Ready Sara...
-2026-02-09 10:08:50,503 - INFO - ✅ Configuration loaded
-2026-02-09 10:08:50,503 - ERROR - Main error: cannot access local variable 'SPEECH_AVAILABLE' where it is not associated with a value
