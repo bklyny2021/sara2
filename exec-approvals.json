@@ -1,9 +1,0 @@
-{
-  "version": 1,
-  "socket": {
-    "path": "/home/godfather/.openclaw/exec-approvals.sock",
-    "token": "PD50-zVLx1ZXBNrUI1H6wpwVwMC7CPy9"
-  },
-  "defaults": {},
-  "agents": {}
-}
