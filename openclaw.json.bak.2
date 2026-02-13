@@ -1,0 +1,106 @@
+{
+  "meta": {
+    "lastTouchedVersion": "2026.2.6-3",
+    "lastTouchedAt": "2026-02-10T17:43:25.751Z"
+  },
+  "wizard": {
+    "lastRunAt": "2026-02-09T02:56:28.349Z",
+    "lastRunVersion": "2026.2.6-3",
+    "lastRunCommand": "onboard",
+    "lastRunMode": "local"
+  },
+  "models": {
+    "providers": {
+      "ollama": {
+        "baseUrl": "http://127.0.0.1:11434/v1",
+        "apiKey": "ollama-local",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "glm-4.6:cloud",
+            "name": "glm-4.6:cloud",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 131072,
+            "maxTokens": 16384
+          }
+        ]
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "ollama/glm-4.6:cloud"
+      },
+      "models": {
+        "ollama/glm-4.6:cloud": {}
+      },
+      "workspace": "/home/godfather/.openclaw/workspace",
+      "compaction": {
+        "mode": "safeguard"
+      },
+      "maxConcurrent": 4,
+      "subagents": {
+        "maxConcurrent": 8
+      }
+    }
+  },
+  "messages": {
+    "ackReactionScope": "group-mentions"
+  },
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto",
+    "restart": true
+  },
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "dmPolicy": "pairing",
+      "botToken": "8546014480:AAGo-KOORLN4O6IJ7b85mal9du2AqaonGws",
+      "groupPolicy": "allowlist",
+      "streamMode": "partial"
+    }
+  },
+  "gateway": {
+    "port": 18789,
+    "mode": "local",
+    "bind": "loopback",
+    "auth": {
+      "mode": "token",
+      "token": "5d69261fe922e6a250d2d09bae1638c00bffff0bf36fca59"
+    },
+    "tailscale": {
+      "mode": "off",
+      "resetOnExit": false
+    },
+    "http": {
+      "endpoints": {
+        "chatCompletions": {
+          "enabled": true
+        }
+      }
+    }
+  },
+  "skills": {
+    "install": {
+      "nodeManager": "npm"
+    }
+  },
+  "plugins": {
+    "entries": {
+      "telegram": {
+        "enabled": true
+      }
+    }
+  }
+}
