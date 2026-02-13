@@ -1,7 +1,0 @@
-{
-  "engine": "pyttsx3",
-  "voice_gender": "female",
-  "rate": 150,
-  "volume": 0.9,
-  "fallback": "gtts"
-}

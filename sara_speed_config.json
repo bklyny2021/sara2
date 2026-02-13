@@ -1,9 +1,0 @@
-{
-  "name": "Sara Speed Agent",
-  "models": ["sara_ai_partner", "codi_tech_expert"],
-  "capabilities": ["file_operations", "system_analysis", "security"],
-  "mode": "speed_optimized",
-  "training_complete": true,
-  "port": 8902,
-  "deployment_time": "< 10 seconds"
-}
