@@ -1,0 +1,124 @@
+{
+  "version": 1,
+  "jobs": [
+    {
+      "id": "7edd778c-7a58-4e39-8dc3-fc54e7a5987a",
+      "agentId": "main",
+      "name": "Daily Security Check",
+      "enabled": true,
+      "createdAtMs": 1770638246337,
+      "updatedAtMs": 1770797074123,
+      "schedule": {
+        "expr": "0 3 * * *",
+        "kind": "cron",
+        "tz": "America/New_York"
+      },
+      "sessionTarget": "main",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "systemEvent",
+        "text": "⏰ 3AM Security Check: Run ~/check-security-status.sh daily security verification"
+      },
+      "state": {
+        "nextRunAtMs": 1770883200000,
+        "lastRunAtMs": 1770796800003,
+        "lastStatus": "ok",
+        "lastDurationMs": 274120
+      }
+    },
+    {
+      "id": "c4f20415-11cc-46dc-b7c9-2254ae2b7821",
+      "agentId": "main",
+      "name": "Sunday Security Audit",
+      "enabled": true,
+      "createdAtMs": 1770638249208,
+      "updatedAtMs": 1770638249208,
+      "schedule": {
+        "expr": "0 4 * * 0",
+        "kind": "cron",
+        "tz": "America/New_York"
+      },
+      "sessionTarget": "main",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "systemEvent",
+        "text": "⏰ 4AM Sunday Security Audit: Run comprehensive weekly security scan and review"
+      },
+      "state": {
+        "nextRunAtMs": 1771146000000
+      }
+    },
+    {
+      "id": "e4823ab5-1c76-4944-939c-446d49ed2e28",
+      "agentId": "main",
+      "name": "Monthly Security Maintenance",
+      "enabled": true,
+      "createdAtMs": 1770638252612,
+      "updatedAtMs": 1770638252612,
+      "schedule": {
+        "expr": "0 6 1 * *",
+        "kind": "cron",
+        "tz": "America/New_York"
+      },
+      "sessionTarget": "main",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "systemEvent",
+        "text": "⏰ 6AM Monthly Security Maintenance: Apply updates, review logs, rotate passwords if needed"
+      },
+      "state": {
+        "nextRunAtMs": 1772362800000
+      }
+    },
+    {
+      "id": "6c390c50-17c2-417f-84ee-b8da9655962b",
+      "agentId": "main",
+      "name": "Daily Wake-Up Call",
+      "enabled": true,
+      "createdAtMs": 1770638256178,
+      "updatedAtMs": 1770811284580,
+      "schedule": {
+        "expr": "0 7 * * *",
+        "kind": "cron",
+        "tz": "America/New_York"
+      },
+      "sessionTarget": "main",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "systemEvent",
+        "text": "⏰ 7AM Daily Wake-Up: Time to get up Boo! Have a great day ☀️"
+      },
+      "state": {
+        "nextRunAtMs": 1770897600000,
+        "lastRunAtMs": 1770811200001,
+        "lastStatus": "ok",
+        "lastDurationMs": 84579
+      }
+    },
+    {
+      "id": "ce0444a4-d52a-4c7f-82fd-fa80bbb8375b",
+      "agentId": "main",
+      "name": "AI Security Patrol",
+      "enabled": true,
+      "createdAtMs": 1770638899982,
+      "updatedAtMs": 1770807618598,
+      "schedule": {
+        "expr": "0 */6 * * *",
+        "kind": "cron",
+        "tz": "America/New_York"
+      },
+      "sessionTarget": "main",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "systemEvent",
+        "text": "🔒 AI Security Patrol: Run ~/ai-security-hardening.sh to maintain protection against prompt injection and hacking attempts"
+      },
+      "state": {
+        "nextRunAtMs": 1770829200000,
+        "lastRunAtMs": 1770807600003,
+        "lastStatus": "ok",
+        "lastDurationMs": 18595
+      }
+    }
+  ]
+}
