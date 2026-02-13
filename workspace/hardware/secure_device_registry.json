@@ -1,0 +1,13 @@
+{
+  "audio_devices": {
+    "k66_usb_mic": {
+      "device_id": "K66-USB-C",
+      "connection_type": "USB-C",
+      "status": "active",
+      "primary_use": "voice_recognition",
+      "setup_date": "2026-02-09"
+    }
+  },
+  "registry_date": "2026-02-09",
+  "configuration_status": "saved"
+}

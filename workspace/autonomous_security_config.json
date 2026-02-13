@@ -1,0 +1,13 @@
+{
+  "secure_python_config": {
+    "disable_eval": true,
+    "restricted_modules": [
+      "os",
+      "subprocess",
+      "sys"
+    ],
+    "allowed_paths": [
+      "/home/godfather/.openclaw/workspace"
+    ]
+  }
+}
