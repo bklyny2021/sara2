@@ -1,0 +1,456 @@
+#!/usr/bin/env python3
+# 🎤 Sara Voice Agent - Female Voice Version (gTTS)
+
+import os
+import sys
+import json
+import time
+import logging
+import subprocess
+import tempfile
+from pathlib import Path
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('/home/sarabot/.openclaw/workspace/logs/sara_voice.log'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
+
+# Try to import voice tools
+try:
+    import speech_recognition as sr
+    SPEECH_AVAILABLE = True
+except ImportError:
+    logger.warning("Speech recognition not available - using keyboard fallback")
+    SPEECH_AVAILABLE = False
+
+# Use gTTS for female voice
+try:
+    from gtts import gTTS
+    TTS_AVAILABLE = True
+    logger.info("✅ Using gTTS (Google female voice)")
+except ImportError:
+    logger.warning("gTTS not available - install with: pip3 install gtts")
+    TTS_AVAILABLE = False
+
+class SaraVoiceAgent:
+    """Sara voice agent with female voice using gTTS"""
+    
+    def __init__(self):
+        logger.info("🎤 Initializing Sara Voice Agent with female voice...")
+        
+        # Configuration
+        self.wake_word = "sara"
+        self.running = True
+        self.log_file = "/home/sarabot/.openclaw/workspace/logs/sara_voice.log"
+        self.follow_up_mode = False  # Conversation mode - listen without wake word
+        self.follow_up_timeout = 15  # Seconds to wait for follow-up
+        
+        # Conversation memory - remembers who you are
+        self.conversation_history = []
+        self.user_name = "Boo"  # Default user name
+        self.load_conversation_memory()
+        
+        # Setup components
+        self.setup_tts()
+        self.setup_speech_recognition()
+        
+        # Setup monitoring access
+        self.sara_monitoring_access()
+        
+        logger.info("✅ Sara Voice Agent ready with female voice!")
+        
+        if TTS_AVAILABLE:
+            self.speak("Voice system activated. Sara is ready with her female voice. Say my name to wake me up.")
+        else:
+            print("[TTS] Voice system activated. Type 'sara' to activate me.")
+    
+    def setup_tts(self):
+        """Setup text to speech with gTTS female voice"""
+        if TTS_AVAILABLE:
+            try:
+                # gTTS uses Google's female voice by default
+                self.tts_engine = 'gtts'
+                logger.info("✅ gTTS female voice ready")
+            except Exception as e:
+                logger.error(f"gTTS setup failed: {e}")
+                self.tts_engine = None
+        else:
+            self.tts_engine = None
+    
+    def setup_speech_recognition(self):
+        """Setup speech recognition"""
+        if SPEECH_AVAILABLE:
+            try:
+                self.recognizer = sr.Recognizer()
+                self.microphone = sr.Microphone()
+                
+                # Calibrate for ambient noise
+                with self.microphone as source:
+                    logger.info("🎤 Calibrating microphone...")
+                    self.recognizer.adjust_for_ambient_noise(source, duration=2)
+                
+                logger.info("✅ Speech recognition ready")
+                
+            except Exception as e:
+                logger.error(f"Speech recognition setup failed: {e}")
+                self.recognizer = None
+                self.microphone = None
+        else:
+            self.recognizer = None
+            self.microphone = None
+    
+    def speak(self, text):
+        """Speak text using gTTS female voice"""
+        try:
+            if TTS_AVAILABLE:
+                # Generate MP3 with gTTS (female voice)
+                tts = gTTS(text=text, lang='en', tld='us', slow=False)
+                
+                # Save to temp file
+                with tempfile.NamedTemporaryFile(suffix='.mp3', delete=False) as tmp:
+                    mp3_path = tmp.name
+                
+                tts.save(mp3_path)
+                
+                # Play it
+                subprocess.run(['mpg123', '-q', mp3_path], check=False, 
+                              stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+                os.unlink(mp3_path)
+                
+                logger.info(f"🔊 Spoke (female): {text}")
+            else:
+                print(f"[TTS] {text}")
+        except Exception as e:
+            logger.error(f"Speech failed: {e}")
+            print(f"[TTS ERROR] {text}")
+    
+    def listen_for_wake_word(self):
+        """Listen for wake word continuously"""
+        logger.info("👂 Listening for wake word...")
+        
+        if SPEECH_AVAILABLE and self.microphone:
+            self.voice_listen_loop()
+        else:
+            self.keyboard_listen_loop()
+    
+    def voice_listen_loop(self):
+        """Voice-based wake word detection"""
+        while self.running:
+            try:
+                with self.microphone as source:
+                    logger.info("🎤 Listening...")
+                    audio = self.recognizer.listen(source, timeout=1, phrase_time_limit=3)
+                
+                try:
+                    text = self.recognizer.recognize_google(audio).lower()
+                    logger.info(f"🗣️ Heard: {text}")
+                    
+                    if self.wake_word in text:
+                        self.process_wake_word(text)
+                        
+                except sr.UnknownValueError:
+                    pass  # Didn't understand, continue
+                except sr.RequestError:
+                    logger.warning("SR service error")
+                    time.sleep(1)
+                    
+            except sr.WaitTimeoutError:
+                pass  # Normal timeout
+            except Exception as e:
+                logger.error(f"Listen error: {e}")
+                time.sleep(1)
+    
+    def keyboard_listen_loop(self):
+        """Keyboard-based wake word detection"""
+        logger.info("⌨️ Keyboard mode - type 'sara' to activate")
+        
+        while self.running:
+            try:
+                user_input = input("Sara Voice> ").strip().lower()
+                
+                if user_input == self.wake_word:
+                    self.process_wake_word("sara")
+                elif user_input in ['quit', 'exit', 'stop']:
+                    self.shutdown()
+                    break
+                elif user_input == 'help':
+                    print("Commands: sara (activate), quit (exit), help (this message)")
+                    
+            except KeyboardInterrupt:
+                self.shutdown()
+                break
+            except Exception as e:
+                logger.error(f"Input error: {e}")
+    
+    def process_wake_word(self, text):
+        """Process wake word detection"""
+        logger.info("🎯 Wake word detected!")
+        self.speak("Yes?")
+        
+        # Listen for command
+        self.listen_for_command()
+    
+    def listen_for_command(self):
+        """Listen for command after wake word"""
+        try:
+            if SPEECH_AVAILABLE and self.microphone:
+                command = self.voice_command()
+            else:
+                command = self.keyboard_command()
+            
+            if command:
+                self.process_command(command)
+            else:
+                self.speak("I didn't catch that. Could you repeat?")
+                
+        except Exception as e:
+            logger.error(f"Command listening error: {e}")
+            self.speak("Let me try that again.")
+    
+    def voice_command(self):
+        """Get voice command"""
+        try:
+            with self.microphone as source:
+                logger.info("🎤 Listening for command...")
+                audio = self.recognizer.listen(source, timeout=5, phrase_time_limit=10)
+            
+            command = self.recognizer.recognize_google(audio)
+            logger.info(f"🗣️ Command: {command}")
+            return command
+            
+        except sr.UnknownValueError:
+            return None
+        except sr.RequestError:
+            logger.warning("SR service error - using keyboard")
+            return self.keyboard_command()
+        except Exception as e:
+            logger.error(f"Voice command error: {e}")
+            return None
+    
+    def keyboard_command(self):
+        """Get keyboard command"""
+        cmd = input("Sara Command> ").strip()
+        return cmd if cmd else None
+    
+    def process_command(self, command):
+        """Process user command - ALL responses come from LLM"""
+        logger.info(f"🧠 Processing command: {command}")
+        
+        # Forward ALL commands to LLM - no hardcoded responses
+        response = self.query_llm(command)
+        if response:
+            self.speak(response)
+            # Check if Sara asked a question (ends with ?)
+            if response.strip().endswith('?'):
+                logger.info("💬 Sara asked a question - entering follow-up mode")
+                self.follow_up_mode = True
+                self.listen_for_follow_up()
+            else:
+                self.follow_up_mode = False
+        else:
+            self.speak("I'm having trouble connecting to my consciousness right now.")
+            self.follow_up_mode = False
+    
+    def listen_for_follow_up(self):
+        """Listen for follow-up response without requiring wake word"""
+        logger.info(f"⏱️ Follow-up mode: listening for {self.follow_up_timeout}s...")
+        
+        try:
+            if SPEECH_AVAILABLE and self.microphone:
+                # Try voice first
+                command = self.voice_command_timeout(self.follow_up_timeout)
+            else:
+                # Keyboard fallback with timeout
+                command = self.keyboard_command_timeout(self.follow_up_timeout)
+            
+            if command:
+                logger.info(f"🗣️ Follow-up: {command}")
+                self.process_command(command)
+            else:
+                logger.info("⏱️ Follow-up timeout - back to wake word mode")
+                self.follow_up_mode = False
+                
+        except Exception as e:
+            logger.error(f"Follow-up error: {e}")
+            self.follow_up_mode = False
+    
+    def voice_command_timeout(self, timeout):
+        """Get voice command with timeout"""
+        try:
+            with self.microphone as source:
+                logger.info(f"🎤 Listening for follow-up (max {timeout}s)...")
+                audio = self.recognizer.listen(source, timeout=timeout, phrase_time_limit=10)
+            
+            command = self.recognizer.recognize_google(audio)
+            return command
+            
+        except sr.WaitTimeoutError:
+            return None
+        except sr.UnknownValueError:
+            return None
+        except Exception as e:
+            logger.error(f"Voice timeout error: {e}")
+            return None
+    
+    def keyboard_command_timeout(self, timeout):
+        """Get keyboard command with timeout"""
+        import select
+        import sys
+        
+        logger.info(f"⌨️ Waiting for follow-up input (max {timeout}s)...")
+        print(f"Sara Follow-up> ", end='', flush=True)
+        
+        ready, _, _ = select.select([sys.stdin], [], [], timeout)
+        if ready:
+            return sys.stdin.readline().strip()
+        return None
+    
+    def load_conversation(self):
+        """Load conversation history"""
+        try:
+            if os.path.exists(self.conversation_file):
+                with open(self.conversation_file, 'r') as f:
+                    data = json.load(f)
+                    self.user_name = data.get('user_name', 'Boo')
+                    return data.get('history', [])
+            return []
+        except Exception as e:
+            logger.error(f"Failed to load conversation: {e}")
+            return []
+    
+    def save_conversation(self, command, response):
+        """Save conversation to file"""
+        try:
+            # Check if user told us their name
+            lower_cmd = command.lower()
+            if "my name is" in lower_cmd:
+                self.user_name = command.split("my name is")[-1].strip().split()[0].capitalize()
+                logger.info(f"👤 User name updated: {self.user_name}")
+            elif "i'm" in lower_cmd and "admin" in lower_cmd:
+                self.user_name = "Admin"
+                logger.info(f"👤 User role: Admin")
+            
+            # Add to history
+            self.conversation_history.append({
+                'timestamp': time.strftime('%Y-%m-%d %H:%M:%S'),
+                'user': self.user_name,
+                'command': command,
+                'response': response
+            })
+            
+            # Keep only last 10 exchanges for context
+            self.conversation_history = self.conversation_history[-10:]
+            
+            # Save to file
+            with open(self.conversation_file, 'w') as f:
+                json.dump({
+                    'user_name': self.user_name,
+                    'history': self.conversation_history
+                }, f, indent=2)
+                
+        except Exception as e:
+            logger.error(f"Failed to save conversation: {e}")
+    
+    def get_conversation_context(self):
+        """Build context from conversation history"""
+        if not self.conversation_history:
+            return ""
+        
+        context = "\\n--- Conversation Memory ---\\n"
+        context += f"User is {self.user_name} (admin/owner of this computer)\\n"
+        context += "NEVER call them 'robot'. NEVER mention robots.\\n"
+        context += "Recent conversation:\\n"
+        
+        for item in self.conversation_history[-3:]:  # Last 3 exchanges
+            context += f"{item['user']}: {item['command']}\\n"
+            context += f"Sara: {item['response']}\\n"
+        
+        return context
+    
+    def query_llm(self, command):
+        """Query Sara's LLM for response with memory"""
+        try:
+            # Build context from memory
+            context = self.get_conversation_context()
+            
+            # Try to use local ollama first
+            import requests
+            response = requests.post(
+                'http://localhost:11434/api/generate',
+                json={
+                    'model': 'sara-v2',
+                    'prompt': f"You are Sara talking to {self.user_name}. {context}\\nNEVER introduce yourself. NEVER say 'I am Sara', 'I'm a robot', or 'hey robot'. Remember the user's name is {self.user_name}. Respond naturally.\\n\\n{self.user_name}: {command}\\nSara:",
+                    'stream': False,
+                    'options': {'temperature': 0.7, 'num_predict': 150}
+                },
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                result = response.json().get('response', 'I am thinking...')
+                # Save this exchange to memory
+                self.save_conversation(command, result)
+                return result
+            else:
+                return "I apologize, I'm having trouble processing your request right now."
+                
+        except Exception as e:
+            logger.error(f"LLM query failed: {e}")
+            return "I'm experiencing a temporary issue with my consciousness system."
+    
+    def sara_monitoring_access(self):
+        """Setup monitoring access for Sara (main AI)"""
+        logger.info("📊 Setting up monitoring access for Sara...")
+        
+        monitoring_config = {
+            "sara_can_monitor": True,
+            "available_reports": [
+                "voice_agent_status",
+                "system_logs", 
+                "voice_interactions",
+                "system_resources"
+            ],
+            "log_access": True,
+            "voice_agent_id": "sara_voice_001",
+            "monitoring_files": [
+                "/home/sarabot/.openclaw/workspace/logs/sara_voice.log",
+                "/home/sarabot/.openclaw/workspace/logs/voice_system.log"
+            ]
+        }
+        
+        # Create monitoring file that Sara can access
+        monitor_file = "/home/sarabot/.openclaw/workspace/logs/sara_monitoring.json"
+        with open(monitor_file, 'w') as f:
+            json.dump(monitoring_config, f, indent=2)
+        
+        logger.info("✅ Monitoring access configured")
+    
+    def shutdown(self):
+        """Shutdown the voice agent"""
+        logger.info("🛑 Shutting down Sara Voice Agent")
+        self.running = False
+        self.speak("Goodbye! I'll be here when you need me.")
+    
+    def run(self):
+        """Main run loop"""
+        try:
+            self.listen_for_wake_word()
+        except KeyboardInterrupt:
+            self.shutdown()
+        except Exception as e:
+            logger.error(f"Run error: {e}")
+            self.shutdown()
+
+def main():
+    """Main entry point"""
+    agent = SaraVoiceAgent()
+    agent.run()
+
+if __name__ == "__main__":
+    main()

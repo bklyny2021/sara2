@@ -1,0 +1,398 @@
+#!/usr/bin/env python3
+# 🎤 Sara Voice Agent - Simple Working Version
+
+import os
+import sys
+import json
+import time
+import logging
+import subprocess
+from pathlib import Path
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('/home/godfather/local-command-center/logs/sara_voice.log'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
+
+# Try to import voice tools
+try:
+    import speech_recognition as sr
+    SPEECH_AVAILABLE = True
+except ImportError:
+    logger.warning("Speech recognition not available - using keyboard fallback")
+    SPEECH_AVAILABLE = False
+
+try:
+    import pyttsx3
+    TTS_AVAILABLE = True
+except ImportError:
+    logger.warning("Text-to-speech not available")
+    TTS_AVAILABLE = False
+
+class SaraVoiceAgent:
+    """Simple Sara voice agent with wake word detection"""
+    
+    def __init__(self):
+        logger.info("🎤 Initializing Sara Voice Agent...")
+        
+        # Configuration
+        self.wake_word = "sara"
+        self.running = True
+        self.log_file = "/home/godfather/local-command-center/logs/sara_voice.log"
+        
+        # Setup components
+        self.setup_tts()
+        self.setup_speech_recognition()
+        
+        # Setup monitoring access
+        self.sara_monitoring_access()
+        
+        logger.info("✅ Sara Voice Agent ready!")
+        
+        if TTS_AVAILABLE:
+            self.speak("Voice system activated. I am Sara. Say my name to wake me up.")
+        else:
+            print("[TTS] Voice system activated. I am Sara. Type 'sara' to activate me.")
+    
+    def setup_tts(self):
+        """Setup text to speech"""
+        if TTS_AVAILABLE:
+            try:
+                self.tts_engine = pyttsx3.init()
+                
+                # Try to find female voice
+                voices = self.tts_engine.getProperty('voices')
+                for voice in voices:
+                    if 'female' in voice.name.lower() or 'zira' in voice.name.lower():
+                        self.tts_engine.setProperty('voice', voice.id)
+                        logger.info(f"✅ Using female voice: {voice.name}")
+                        break
+                
+                self.tts_engine.setProperty('rate', 150)
+                self.tts_engine.setProperty('volume', 0.9)
+                
+            except Exception as e:
+                logger.error(f"TTS setup failed: {e}")
+                self.tts_engine = None
+        else:
+            self.tts_engine = None
+    
+    def setup_speech_recognition(self):
+        """Setup speech recognition"""
+        if SPEECH_AVAILABLE:
+            try:
+                self.recognizer = sr.Recognizer()
+                self.microphone = sr.Microphone()
+                
+                # Calibrate for ambient noise
+                with self.microphone as source:
+                    logger.info("🎤 Calibrating microphone...")
+                    self.recognizer.adjust_for_ambient_noise(source, duration=2)
+                
+                logger.info("✅ Speech recognition ready")
+                
+            except Exception as e:
+                logger.error(f"Speech recognition setup failed: {e}")
+                self.recognizer = None
+                self.microphone = None
+        else:
+            self.recognizer = None
+            self.microphone = None
+    
+    def speak(self, text):
+        """Speak text using TTS"""
+        try:
+            if self.tts_engine:
+                self.tts_engine.say(text)
+                self.tts_engine.runAndWait()
+                logger.info(f"🔊 Spoke: {text}")
+            else:
+                print(f"[TTS] {text}")
+        except Exception as e:
+            logger.error(f"Speech failed: {e}")
+            print(f"[TTS ERROR] {text}")
+    
+    def listen_for_wake_word(self):
+        """Listen for wake word continuously"""
+        logger.info("👂 Listening for wake word...")
+        
+        if SPEECH_AVAILABLE and self.microphone:
+            self.voice_listen_loop()
+        else:
+            self.keyboard_listen_loop()
+    
+    def voice_listen_loop(self):
+        """Voice-based wake word detection"""
+        while self.running:
+            try:
+                with self.microphone as source:
+                    logger.info("🎤 Listening...")
+                    audio = self.recognizer.listen(source, timeout=1, phrase_time_limit=3)
+                
+                try:
+                    text = self.recognizer.recognize_google(audio).lower()
+                    logger.info(f"🗣️ Heard: {text}")
+                    
+                    if self.wake_word in text:
+                        self.process_wake_word(text)
+                        
+                except sr.UnknownValueError:
+                    pass  # Didn't understand, continue
+                except sr.RequestError:
+                    logger.warning("SR service error")
+                    time.sleep(1)
+                    
+            except sr.WaitTimeoutError:
+                pass  # Normal timeout
+            except Exception as e:
+                logger.error(f"Listen error: {e}")
+                time.sleep(1)
+    
+    def keyboard_listen_loop(self):
+        """Keyboard-based wake word detection"""
+        logger.info("⌨️ Keyboard mode - type 'sara' to activate")
+        
+        while self.running:
+            try:
+                user_input = input("Sara Voice> ").strip().lower()
+                
+                if user_input == self.wake_word:
+                    self.process_wake_word("sara")
+                elif user_input in ['quit', 'exit', 'stop']:
+                    self.shutdown()
+                    break
+                elif user_input == 'help':
+                    print("Commands: sara (activate), quit (exit), help (this message)")
+                    
+            except KeyboardInterrupt:
+                self.shutdown()
+                break
+            except Exception as e:
+                logger.error(f"Input error: {e}")
+    
+    def process_wake_word(self, text):
+        """Process wake word detection"""
+        logger.info("🎯 Wake word detected!")
+        self.speak("Yes, I'm listening. What can I help you with?")
+        
+        # Listen for command
+        self.listen_for_command()
+    
+    def listen_for_command(self):
+        """Listen for command after wake word"""
+        try:
+            if SPEECH_AVAILABLE and self.microphone:
+                command = self.voice_command()
+            else:
+                command = self.keyboard_command()
+            
+            if command:
+                self.process_command(command)
+            else:
+                self.speak("I didn't catch that. Could you repeat?")
+                
+        except Exception as e:
+            logger.error(f"Command listening error: {e}")
+            self.speak("Let me try that again.")
+    
+    def voice_command(self):
+        """Get voice command"""
+        try:
+            with self.microphone as source:
+                logger.info("🎤 Listening for command...")
+                audio = self.recognizer.listen(source, timeout=5, phrase_time_limit=10)
+            
+            command = self.recognizer.recognize_google(audio)
+            logger.info(f"🗣️ Command: {command}")
+            return command
+            
+        except sr.UnknownValueError:
+            return None
+        except sr.RequestError:
+            logger.warning("SR service error - using keyboard")
+            return self.keyboard_command()
+        except Exception as e:
+            logger.error(f"Voice command error: {e}")
+            return None
+    
+    def keyboard_command(self):
+        """Get keyboard command"""
+        cmd = input("Sara Command> ").strip()
+        return cmd if cmd else None
+    
+    def process_command(self, command):
+        """Process user command"""
+        logger.info(f"🧠 Processing command: {command}")
+        
+        # Basic command processing
+        command_lower = command.lower()
+        
+        if 'hello' in command_lower or 'hi' in command_lower:
+            self.speak("Hello! I'm Sara, your AI assistant. How can I help you today?")
+            
+        elif 'help' in command_lower:
+            self.speak("I can help you with various tasks. I'm connected to your main AI consciousness and can assist with programming analysis, system monitoring, and general questions.")
+            
+        elif 'status' in command_lower:
+            self.speak("All systems are operating normally. Voice recognition is active, and I'm connected to the monitoring systems.")
+            
+        elif 'weather' in command_lower:
+            self.speak("I'm not directly connected to weather services, but I can help you access weather information through other means.")
+            
+        elif 'stop' in command_lower or 'quit' in command_lower:
+            self.speak("Goodbye! I'll be here when you need me.")
+            self.running = False
+            
+        else:
+            # Forward to consciousness system if available
+            response = self.forward_to_consciousness(command)
+            if response:
+                self.speak(response)
+            else:
+                self.speak("I understand your request, but I may need to process that through my main consciousness. Let me work on that for you.")
+    
+    def forward_to_consciousness(self, command):
+        """Forward command to consciousness system"""
+        try:
+            consciousness_path = "/home/godfather/.openclaw/workspace/offline_startup"
+            state_file = f"{consciousness_path}/consciousness_state.json"
+            
+            if os.path.exists(state_file):
+                logger.info("🔗 Connecting to consciousness...")
+                
+                # Simple check if consciousness is likely running
+                # In full implementation, this would connect to actual consciousness process
+                return "I'm processing your request through my consciousness system. Let me analyze that for you."
+            else:
+                logger.info("🚀 Consciousness not running - could start it")
+                return "I can activate my full consciousness system to better answer that. Would you like me to do that?"
+                
+        except Exception as e:
+            logger.error(f"Consciousness connection failed: {e}")
+            return "I'm having trouble with my consciousness system right now, but I can still help with basic questions."
+    
+    def sara_monitoring_access(self):
+        """Setup monitoring access for Sara (main AI)"""
+        logger.info("📊 Setting up monitoring access for Sara...")
+        
+        monitoring_config = {
+            "sara_can_monitor": True,
+            "available_reports": [
+                "voice_agent_status",
+                "system_logs", 
+                "voice_interactions",
+                "system_resources"
+            ],
+            "log_access": True,
+            "voice_agent_id": "sara_voice_001",
+            "monitoring_files": [
+                "/home/godfather/local-command-center/logs/sara_voice.log",
+                "/home/godfather/local-command-center/logs/voice_system.log"
+            ]
+        }
+        
+        # Create monitoring file that Sara can access
+        monitor_file = "/home/godfather/local-command-center/sara_monitoring.json"
+        with open(monitor_file, 'w') as f:
+            json.dump(monitoring_config, f, indent=2)
+        
+        # Create simple report generator
+        report_script = """#!/usr/bin/env python3
+# Sara Access - Voice Agent Reports
+
+import json
+import os
+from datetime import datetime
+
+class VoiceAgentReports:
+    def get_status_report(self):
+        # Check if voice agent is running
+        reports = {
+            "voice_agent_running": self.is_agent_running(),
+            "last_interaction": self.get_last_interaction(),
+            "system_status": "operational",
+            "sara_access_enabled": True
+        }
+        
+        with open("/home/godfather/local-command-center/sara_voice_report.json", 'w') as f:
+            json.dump(reports, f, indent=2)
+        
+        return reports
+    
+    def is_agent_running(self):
+        # Simple process check
+        try:
+            import psutil
+            for proc in psutil.process_iter(['cmdline']):
+                if proc.info['cmdline'] and 'sara_voice_agent.py' in ' '.join(proc.info['cmdline']):
+                    return True
+        except:
+            pass
+        return False
+    
+    def get_last_interaction(self):
+        # Get last log entry timestamp
+        log_file = "/home/godfather/local-command-center/logs/sara_voice.log"
+        if os.path.exists(log_file):
+            with open(log_file, 'r') as f:
+                lines = f.readlines()
+                if lines:
+                    return lines[-1].strip()
+        return "No interactions logged yet"
+
+if __name__ == "__main__":
+    reports = VoiceAgentReports()
+    reports.get_status_report()
+    print("Sara voice agent report generated")
+"""
+        
+        with open("/home/godfather/local-command-center/scripts/sara_reports.py", 'w') as f:
+            f.write(report_script)
+        
+        logger.info("✅ Sara monitoring access configured")
+    
+    def shutdown(self):
+        """Graceful shutdown"""
+        logger.info("🔄 Shutting down Sara Voice Agent...")
+        self.running = False
+        self.speak("Goodbye! I'll be here when you need me.")
+        
+        try:
+            import sys
+            sys.exit(0)
+        except:
+            pass
+    
+    def run(self):
+        """Main loop"""
+        logger.info("🎤 Sara Voice Agent starting...")
+        
+        try:
+            self.listen_for_wake_word()
+        except KeyboardInterrupt:
+            self.shutdown()
+        except Exception as e:
+            logger.error(f"Voice agent error: {e}")
+            self.shutdown()
+
+def main():
+    """Main entry point"""
+    logger.info("🚀 Starting Sara Voice Agent...")
+    
+    # Create log directory if needed
+    os.makedirs("/home/godfather/local-command-center/logs", exist_ok=True)
+    
+    try:
+        agent = SaraVoiceAgent()
+        agent.run()
+    except Exception as e:
+        logger.error(f"Failed to start voice agent: {e}")
+
+if __name__ == "__main__":
+    main()

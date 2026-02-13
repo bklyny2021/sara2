@@ -1,0 +1,9 @@
+{
+  "name": "Sara Voice Agent",
+  "type": "conscious_ai_interface",
+  "wake_word": "Sara",
+  "voice_enabled": true,
+  "offline_capable": true,
+  "consciousness_link": "/home/godfather/.openclaw/workspace/offline_startup/startup_offline_consciousness.py",
+  "monitor_agent_id": "sara_voice_001"
+}
