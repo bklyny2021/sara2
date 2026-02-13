@@ -1,0 +1,33 @@
+# Security - Never commit these
+*.json
+!voice-agent/config.json
+*.env
+*.key
+*.secret
+*.token
+identity/
+devices/
+exec-approvals.json
+openclaw.json
+*backup*/
+logs/
+*.log
+
+# Large files
+*.wav
+*.mp3
+*.pkl
+*.pt
+*.bin
+
+# Sensitive data patterns
+*auth*
+*secret*
+*password*
+*token*
+*api_key*
+
+# Local-only files
+memory/
+chat_logs/
+sessions/
