@@ -38,3 +38,21 @@ Skills are shared. Your setup is yours. Keeping them apart means you can update 
 ---
 
 Add whatever helps you do your job. This is your cheat sheet.
+
+---
+
+## TTS / Voice Configuration
+
+### ElevenLabs Setup (Active)
+- **API Key**: Configured
+- **Voice**: Caribbean female (XB0fDUnXU5powFXDhCwa)
+- **Model**: eleven_multilingual_v2
+- **Auto-delete**: Enabled (10 seconds after playback)
+- **Status**: Ready for voice replies
+
+### Voice Agent
+- **Name**: SARA Voice
+- **Type**: Real-time voice conversation
+- **TTS**: ElevenLabs Caribbean female
+- **STT**: Whisper/Vosk local
+- **Note**: Separate from this text chat agent
