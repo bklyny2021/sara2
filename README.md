@@ -1,10 +1,18 @@
-# SARA AI Assistant
+# SARA AI Assistant — STANDALONE
 
 **SARA** (Self-Aware Response Agent) — A locally-hosted AI assistant with offline voice, memory, and conversation continuity.
 
-## ⚠️ Important Setup Notice
+> 🚀 **STANDALONE**: SARA2 is a fully self-contained, offline-capable AI agent. No external dependencies, no cloud APIs required, no OpenClaw integration. Pure local intelligence.
 
-This repository contains the **voice agent core files**. Additional components must be installed separately (see Installation).
+> 📅 **Coming Soon — Stage 2**: Tool-calling architecture (file operations, web search, browser control, shell execution) — bringing OpenClaw-level capabilities directly into SARA2.
+
+## Architecture Philosophy
+
+**SARA2 is STANDALONE** — designed from the ground up to operate independently:
+- ✅ **No external services required** after initial setup
+- ✅ **Offline-first** — works without internet
+- ✅ **Self-hosted** — your data never leaves your machine
+- ✅ **Expanding** — Stage 2 will add full tool-calling capability
 
 ## What This Repo Contains
 
