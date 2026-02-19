@@ -13,6 +13,9 @@ openclaw.json
 logs/
 *.log
 
+# Browser profile data (contains cookies, session IDs, unique identifiers)
+browser/openclaw/user-data/
+
 # Large files
 *.wav
 *.mp3
