@@ -36,7 +36,7 @@ class SaraWebInterface:
         """Ask Sara model a question"""
         try:
             cmd = [
-                'ollama', 'run', 'sara-boo1-fixed:latest', question
+                'ollama', 'run', 'sara-v2:latest', question
             ]
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
             return result.stdout.strip() if result.returncode == 0 else "I had trouble processing that."
@@ -101,7 +101,7 @@ def index():
     <div class="memory" id="memory">Simple Memory: <span id="memCount">0</span> convos</div>
     <div class="header">
         <h1>🤖 Sara AI - Real Agent with Complete Memory</h1>
-        <p>Running sara-boo1-fixed:latest with offline memory system | Full continuity preserved</p>
+        <p>Running sara-v2:latest with offline memory system | Full continuity preserved</p>
     </div>
     <div class="chat-container">
         <div class="messages" id="messages"></div>
@@ -200,7 +200,7 @@ def start_sara_web():
     
     print(f"📂 Memory file: {sara.memory_file}")
     print(f"💬 Conversations loaded: {len(sara.conversations)}")
-    print(f"🤖 Model: sara-boo1-fixed:latest")
+    print(f"🤖 Model: sara-v2:latest")
     print(f"🌐 Interface: http://127.0.0.1:8892")
     
     print("\n🧠 REAL SARA STATUS:")
@@ -219,7 +219,7 @@ def start_sara_web():
     
     print("\n🚀 REAL SARA WEB INTERFACE ACTIVE")
     print("   URL: http://127.0.0.1:8892")
-    print("   Brain: sara-boo1-fixed:latest")
+    print("   Brain: sara-v2:latest")
     print("   Memory: simple_memory system")
     print("   Status: FULLY OPERATIONAL")
     
